@@ -12,11 +12,7 @@ class DbUtils {
   static MySqlConnection? _db;
 
   static Future<MySqlConnection> instance() async {
-    if(_db==null){
       _db =  await MySqlConnection.connect(mysqlSettings);
-    }else{
-      _db;
-    }
     return _db!;
   }
 }

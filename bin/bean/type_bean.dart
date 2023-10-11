@@ -6,7 +6,7 @@ class TypeBean {
   TypeBean({required this.id, required this.name});
 
   Map<String,dynamic> toJson()=>{
-    "id":"$id",
+    "id":id,
     "name":"$name",
   };
 

@@ -32,7 +32,7 @@ class TypeRepository {
     if (map["id"] != null) {
       searchSql = "select * from type where id =${map["id"]}";
     } else {
-      searchSql = "select * from type where name like '%${map["name"]}%'";
+      searchSql = "select * from type where name like '%${map["name"]??''}%'";
     }
     var queryType = await db.query(searchSql);
     List<TypeBean> typeBeans = [];
