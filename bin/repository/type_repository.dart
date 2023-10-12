@@ -7,17 +7,51 @@ import '../bean/result_bean.dart';
 import '../bean/type_bean.dart';
 import '../db_utils.dart';
 
-class TypeRepository {
+abstract class ITypeRepository {
+  Future<dynamic> searchTypeAll(dynamic map);
+
+  Future<dynamic> addTypeChild(dynamic map);
+
+  Future<dynamic> searchTypeChild(dynamic map);
+
+  Future<dynamic> updateTypeChild(dynamic map);
+
+  Future<dynamic> delTypeChild(dynamic map);
+
+  Future<dynamic> addTypeParent(dynamic map);
+
+  Future<dynamic> searchTypeParent(dynamic map);
+
+  Future<dynamic> updateTypeParent(dynamic map);
+
+  Future<dynamic> delTypeParent(dynamic map);
+}
+
+class TypeRepository extends ITypeRepository {
   // 添加
-  Future<dynamic> addType(String name) async {
+  Future<dynamic> addTypeChild(dynamic map) async {
     ResultBean resultBean = ResultBean();
-    if (name.isEmpty) {
+    if (map["parent_id"].isEmpty) {
+      resultBean.msg = "父级id不允许为空";
+      resultBean.code = -1;
+      return resultBean.toJson();
+    }
+    if (map["name_zh"].isEmpty) {
+      resultBean.msg = "类型不允许为空";
+      resultBean.code = -1;
+      return resultBean.toJson();
+    }
+    if (map["name_en"].isEmpty) {
       resultBean.msg = "类型不允许为空";
       resultBean.code = -1;
       return resultBean.toJson();
     }
     MySqlConnection db = await DbUtils.instance();
-    var query = db.query("insert into type (name) values(?)", [name]);
+    var query = db.query("insert into type_child (name_zh,name_en,parent_id) values(?,?,?)", [
+      map['name_zh'],
+      map['name_en'],
+      map['parent_id'],
+    ]);
     print(query);
     resultBean.msg = "添加成功";
     resultBean.code = 0;
@@ -25,20 +59,31 @@ class TypeRepository {
   }
 
   // 查询
-  Future<dynamic> searchType(dynamic map) async {
+  Future<dynamic> searchTypeChild(dynamic map) async {
     ResultBean resultBean = ResultBean();
     MySqlConnection db = await DbUtils.instance();
     String searchSql = "";
+
+    String? language = map["language"];
+
     if (map["id"] != null) {
-      searchSql = "select * from type where id =${map["id"]}";
+      if (language == null) {
+        searchSql = "select id,name_zh,parent_id from type_child where id =${map["id"]}";
+      } else {
+        searchSql = "select id,name_en,parent_id from type_child where id =${map["id"]}";
+      }
     } else {
-      searchSql = "select * from type where name like '%${map["name"]??''}%'";
+      if (language == null) {
+        searchSql = "select id,name_zh,parent_id from type_child where name_zh like '%${map["name"] ?? ''}%'";
+      } else {
+        searchSql = "select id,name_en,parent_id from type_child where name_en like '%${map["name"] ?? ''}%'";
+      }
     }
     var queryType = await db.query(searchSql);
     List<TypeBean> typeBeans = [];
     for (var row in queryType) {
       print('id: ${row[0]}, name: ${row[1]} ');
-      TypeBean typeBean = TypeBean(id: row[0], name: row[1]);
+      TypeBean typeBean = TypeBean(id: row[0], name: row[1], parentId: row[2]);
       typeBeans.add(typeBean);
     }
     resultBean.msg = "查询成功";
@@ -48,7 +93,7 @@ class TypeRepository {
   }
 
   // 更新
-  Future<dynamic> updateType(dynamic map) async {
+  Future<dynamic> updateTypeChild(dynamic map) async {
     ResultBean resultBean = ResultBean();
     if (map['id'].toString().isEmpty || map['name'].toString().isEmpty) {
       resultBean.msg = "参数不允许为空";
@@ -57,18 +102,18 @@ class TypeRepository {
     }
     MySqlConnection db = await DbUtils.instance();
     // 先查询是否存在
-    var queryTypeCount = await db.query("select * from type where id =${map['id']}");
+    var queryTypeCount = await db.query("select * from type_child where id =${map['id']}");
     if (queryTypeCount.fields.isEmpty) {
       resultBean.msg = "暂无此数据";
       resultBean.code = -1;
       return resultBean.toJson();
     }
-    await db.query('update type set name=? where id=?', [map['name'], map['id']]);
-    var queryType = await db.query("select * from type where id =${map['id']}");
+    await db.query('update type_child set name_zh=?,name_en=?,parent_id=? where id=?', [map['name_zh'], map['name_en'], map['parent_id'], map['id']]);
+    var queryType = await db.query("select * from_child type where id =${map['id']}");
     TypeBean? typeBean;
     for (var row in queryType) {
       print('id: ${row[0]}, name: ${row[1]} ');
-      typeBean = TypeBean(id: row[0], name: row[1]);
+      typeBean = TypeBean(id: row[0], name: row[1], parentId: row[2]);
     }
     resultBean.msg = "修改成功";
     resultBean.code = 0;
@@ -77,7 +122,7 @@ class TypeRepository {
   }
 
   // 修改
-  Future<dynamic> delType(dynamic map) async {
+  Future<dynamic> delTypeChild(dynamic map) async {
     ResultBean resultBean = ResultBean();
     if (map['id'].toString().isEmpty) {
       resultBean.msg = "参数不允许为空";
@@ -87,11 +132,162 @@ class TypeRepository {
     MySqlConnection db = await DbUtils.instance();
     String searchSql = "";
     if (map["id"] != null) {
-      searchSql = "delete from type where id =${map["id"]}";
+      searchSql = "delete from type_child where id =${map["id"]}";
     }
     await db.query(searchSql);
     resultBean.msg = "删除成功";
     resultBean.code = 0;
+    return resultBean.toJson();
+  }
+
+  ///////////////// 父级
+
+  // 添加父级
+  Future<dynamic> addTypeParent(dynamic map) async {
+    ResultBean resultBean = ResultBean();
+    if (map["name"].isEmpty) {
+      resultBean.msg = "类型名称不允许为空";
+      resultBean.code = -1;
+      return resultBean.toJson();
+    }
+    MySqlConnection db = await DbUtils.instance();
+    var query = db.query("insert into type_parent (name) values(?)", [map['name']]);
+    print(query);
+    resultBean.msg = "添加成功";
+    resultBean.code = 0;
+    return resultBean.toJson();
+  }
+
+  // 查询
+  Future<dynamic> searchTypeParent(dynamic map) async {
+    ResultBean resultBean = ResultBean();
+    MySqlConnection db = await DbUtils.instance();
+    String searchSql = "";
+
+    String? language = map["language"];
+
+    if (map["id"] != null) {
+      if (language == null) {
+        searchSql = "select id,name_zh from type_parent where id =${map["id"]}";
+      } else {
+        searchSql = "select id,name_en from type_parent where id =${map["id"]}";
+      }
+    } else {
+      if (language == null) {
+        searchSql = "select id,name_zh from type_parent where name_zh like '%${map["name"] ?? ''}%'";
+      } else {
+        searchSql = "select id,name_en from type_parent where name_en like '%${map["name"] ?? ''}%'";
+      }
+    }
+    var queryType = await db.query(searchSql);
+    List<TypeBean> typeBeans = [];
+    for (var row in queryType) {
+      print('id: ${row[0]}, name: ${row[1]} ');
+      TypeBean typeBean = TypeBean(id: row[0], name: row[1], parentId: null);
+      typeBeans.add(typeBean);
+    }
+    resultBean.msg = "查询成功";
+    resultBean.code = 0;
+    resultBean.data = json.encode(typeBeans);
+    return resultBean.toJson();
+  }
+
+  // 更新
+  Future<dynamic> updateTypeParent(dynamic map) async {
+    ResultBean resultBean = ResultBean();
+    if (map['id'].toString().isEmpty || map['name'].toString().isEmpty) {
+      resultBean.msg = "参数不允许为空";
+      resultBean.code = -1;
+      return resultBean.toJson();
+    }
+    MySqlConnection db = await DbUtils.instance();
+    // 先查询是否存在
+    var queryTypeCount = await db.query("select * from type_parent where id =${map['id']}");
+    if (queryTypeCount.fields.isEmpty) {
+      resultBean.msg = "暂无此数据";
+      resultBean.code = -1;
+      return resultBean.toJson();
+    }
+    await db.query('update type_parent set name=? where id=?', [map['name'], map['id']]);
+    var queryType = await db.query("select * from type_parent where id =${map['id']}");
+    TypeBean? typeBean;
+    for (var row in queryType) {
+      print('id: ${row[0]}, name: ${row[1]} ');
+      typeBean = TypeBean(id: row[0], name: row[1], parentId: null);
+    }
+    resultBean.msg = "修改成功";
+    resultBean.code = 0;
+    resultBean.data = typeBean!.toJson();
+    return resultBean.toJson();
+  }
+
+  // 修改
+  Future<dynamic> delTypeParent(dynamic map) async {
+    ResultBean resultBean = ResultBean();
+    if (map['id'].toString().isEmpty) {
+      resultBean.msg = "参数不允许为空";
+      resultBean.code = -1;
+      return resultBean.toJson();
+    }
+    MySqlConnection db = await DbUtils.instance();
+    String searchSql = "";
+    if (map["id"] != null) {
+      searchSql = "delete from type_parent where id =${map["id"]}";
+    }
+    await db.query(searchSql);
+    resultBean.msg = "删除成功";
+    resultBean.code = 0;
+    return resultBean.toJson();
+  }
+
+  @override
+  Future searchTypeAll(map) async {
+    ResultBean resultBean = ResultBean();
+    MySqlConnection db = await DbUtils.instance();
+    String searchSql = "";
+    String? language = map["language"];
+    if (language == null) {
+      searchSql = "select id,name_zh from type_parent";
+    } else {
+      searchSql = "select id,name_en from type_parent";
+    }
+    var queryType = await db.query(searchSql);
+    List<TypeBean> typeParentBeans = [];
+    for (var rowParent in queryType) {
+      print('id: ${rowParent[0]}, name: ${rowParent[1]} ');
+      TypeBean typeBeanParent = TypeBean(id: rowParent[0], name: rowParent[1], parentId: null); // 查询的父类
+      typeParentBeans.add(typeBeanParent);
+    }
+    List<TypeBean> typeChildAllBeans = [];
+    String childSearchSql = "";
+    if (language == null) {
+      childSearchSql = "select id,name_zh,parent_id from type_child";
+    } else {
+      childSearchSql = "select id,name_en,parent_id from type_child";
+    }
+    var queryChildType = await db.query(childSearchSql);
+    for (var row in queryChildType) {
+      print('id: ${row[0]}, name: ${row[1]} ');
+      TypeBean typeBean = TypeBean(id: row[0], name: row[1], parentId: row[2]);
+      typeChildAllBeans.add(typeBean);
+    }
+    // 整理
+    for (var valueParent in typeParentBeans) {
+      int parentId = valueParent.id!;
+      var childData = typeChildAllBeans.where((e) {
+        if (e.parentId == parentId) {
+          return true;
+        }else{
+          return false;
+        }
+      }).toList();
+
+      valueParent.childBean = childData;
+      print("子菜单是:${childData}");
+    }
+    resultBean.msg = "查询成功";
+    resultBean.code = 0;
+    resultBean.data = json.encode(typeParentBeans);
     return resultBean.toJson();
   }
 }

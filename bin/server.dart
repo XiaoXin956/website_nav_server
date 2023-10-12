@@ -10,39 +10,60 @@ import 'repository/type_repository.dart';
 TypeRepository typeRepository = TypeRepository();
 
 final _router = Router()
-  ..get('/', _rootHandler)
   ..post('/add_type', _addWebSiteAddType)
   ..post('/search_type', _addWebSiteSearchType)
   ..post('/update_type', _addWebSiteUpdateType)
   ..post('/del_type', _addWebSiteDelType);
 
-Response _rootHandler(Request req) {
-  return Response.ok('Hello, World!\n');
-}
-
 Future<Response> _addWebSiteAddType(Request request) async {
   var body = await request.readAsString();
-  dynamic result = await typeRepository.addType(json.decode(body)["name"]);
+  dynamic result;
+  dynamic reqMap = json.decode(body);
+  if (reqMap["type"] == "parent") {
+    result = await typeRepository.addTypeParent(reqMap);
+  } else if (reqMap["type"] == "child") {
+    result = await typeRepository.addTypeChild(reqMap);
+  }
   return Response.ok("$result");
 }
 
 Future<Response> _addWebSiteSearchType(Request request) async {
   var body = await request.readAsString();
-  dynamic result = await typeRepository.searchType(json.decode(body));
+  dynamic result;
+  dynamic reqMap = json.decode(body);
+  if (reqMap["type"] == "parent") {
+    result = await typeRepository.searchTypeParent(reqMap);
+  } else if (reqMap["type"] == "child") {
+    result = await typeRepository.searchTypeChild(reqMap);
+  }else  if (reqMap["type"] == "all") {
+    result = await typeRepository.searchTypeAll(reqMap);
+  }
   return Response.ok(json.encode(result));
 }
 
 Future<Response> _addWebSiteUpdateType(Request request) async {
   var body = await request.readAsString();
-  dynamic result = await typeRepository.updateType(json.decode(body));
-  return Response.ok("$result");
-}
-Future<Response> _addWebSiteDelType(Request request) async {
-  var body = await request.readAsString();
-  dynamic result = await typeRepository.delType(json.decode(body));
+  dynamic result;
+  dynamic reqMap = json.decode(body);
+  if (reqMap["type"] == "parent") {
+    result = await typeRepository.updateTypeParent(json.decode(body));
+  } else if (reqMap["type"] == "child") {
+    result = await typeRepository.updateTypeChild(json.decode(body));
+  }
   return Response.ok("$result");
 }
 
+Future<Response> _addWebSiteDelType(Request request) async {
+  var body = await request.readAsString();
+  dynamic result;
+  dynamic reqMap = json.decode(body);
+  if (reqMap["type"] == "parent") {
+    result = await typeRepository.delTypeParent(json.decode(body));
+  } else if (reqMap["type"] == "child") {
+    result = await typeRepository.delTypeChild(json.decode(body));
+  }
+  return Response.ok("$result");
+}
 
 void main(List<String> args) async {
   // Use any available host or container IP (usually `0.0.0.0`).
@@ -52,7 +73,7 @@ void main(List<String> args) async {
   final handler = Pipeline().addMiddleware(logRequests()).addHandler(_router);
 
   // For running in containers, we respect the PORT environment variable.
-  final port = int.parse(Platform.environment['PORT'] ?? '80');
+  final port = int.parse(Platform.environment['PORT'] ?? '8080');
   final server = await serve(handler, ip, port);
   print('Server listening on port ${server.port}');
 }
