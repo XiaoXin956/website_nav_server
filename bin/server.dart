@@ -10,12 +10,12 @@ import 'repository/type_repository.dart';
 TypeRepository typeRepository = TypeRepository();
 
 final _router = Router()
-  ..post('/add_type', _addWebSiteAddType)
-  ..post('/search_type', _addWebSiteSearchType)
-  ..post('/update_type', _addWebSiteUpdateType)
-  ..post('/del_type', _addWebSiteDelType);
+  ..post('/add_type', _webSiteAddType)
+  ..post('/search_type', _webSiteSearchType)
+  ..post('/update_type', _webSiteUpdateType)
+  ..post('/del_type', _webSiteDelType);
 
-Future<Response> _addWebSiteAddType(Request request) async {
+Future<Response> _webSiteAddType(Request request) async {
   var body = await request.readAsString();
   dynamic result;
   dynamic reqMap = json.decode(body);
@@ -27,7 +27,7 @@ Future<Response> _addWebSiteAddType(Request request) async {
   return Response.ok("$result");
 }
 
-Future<Response> _addWebSiteSearchType(Request request) async {
+Future<Response> _webSiteSearchType(Request request) async {
   var body = await request.readAsString();
   dynamic result;
   dynamic reqMap = json.decode(body);
@@ -41,7 +41,7 @@ Future<Response> _addWebSiteSearchType(Request request) async {
   return Response.ok(json.encode(result));
 }
 
-Future<Response> _addWebSiteUpdateType(Request request) async {
+Future<Response> _webSiteUpdateType(Request request) async {
   var body = await request.readAsString();
   dynamic result;
   dynamic reqMap = json.decode(body);
@@ -50,10 +50,10 @@ Future<Response> _addWebSiteUpdateType(Request request) async {
   } else if (reqMap["type"] == "child") {
     result = await typeRepository.updateTypeChild(json.decode(body));
   }
-  return Response.ok("$result");
+  return Response.ok(json.encode(result));
 }
 
-Future<Response> _addWebSiteDelType(Request request) async {
+Future<Response> _webSiteDelType(Request request) async {
   var body = await request.readAsString();
   dynamic result;
   dynamic reqMap = json.decode(body);
@@ -62,7 +62,7 @@ Future<Response> _addWebSiteDelType(Request request) async {
   } else if (reqMap["type"] == "child") {
     result = await typeRepository.delTypeChild(json.decode(body));
   }
-  return Response.ok("$result");
+  return Response.ok(json.encode(result));
 }
 
 void main(List<String> args) async {

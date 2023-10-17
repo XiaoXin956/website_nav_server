@@ -36,20 +36,14 @@ class TypeRepository extends ITypeRepository {
       resultBean.code = -1;
       return resultBean.toJson();
     }
-    if (map["name_zh"].isEmpty) {
-      resultBean.msg = "类型不允许为空";
-      resultBean.code = -1;
-      return resultBean.toJson();
-    }
-    if (map["name_en"].isEmpty) {
+    if (map["name"].isEmpty) {
       resultBean.msg = "类型不允许为空";
       resultBean.code = -1;
       return resultBean.toJson();
     }
     MySqlConnection db = await DbUtils.instance();
-    var query = db.query("insert into type_child (name_zh,name_en,parent_id) values(?,?,?)", [
-      map['name_zh'],
-      map['name_en'],
+    var query = db.query("insert into type_child (name,parent_id) values(?,?)", [
+      map['name'],
       map['parent_id'],
     ]);
     print(query);
@@ -63,21 +57,10 @@ class TypeRepository extends ITypeRepository {
     ResultBean resultBean = ResultBean();
     MySqlConnection db = await DbUtils.instance();
     String searchSql = "";
-
-    String? language = map["language"];
-
     if (map["id"] != null) {
-      if (language == null) {
-        searchSql = "select id,name_zh,parent_id from type_child where id =${map["id"]}";
-      } else {
-        searchSql = "select id,name_en,parent_id from type_child where id =${map["id"]}";
-      }
+        searchSql = "select id,name,parent_id from type_child where id =${map["id"]}";
     } else {
-      if (language == null) {
-        searchSql = "select id,name_zh,parent_id from type_child where name_zh like '%${map["name"] ?? ''}%'";
-      } else {
-        searchSql = "select id,name_en,parent_id from type_child where name_en like '%${map["name"] ?? ''}%'";
-      }
+        searchSql = "select id,name,parent_id from type_child where name like '%${map["name"] ?? ''}%'";
     }
     var queryType = await db.query(searchSql);
     List<TypeBean> typeBeans = [];
@@ -108,8 +91,8 @@ class TypeRepository extends ITypeRepository {
       resultBean.code = -1;
       return resultBean.toJson();
     }
-    await db.query('update type_child set name_zh=?,name_en=?,parent_id=? where id=?', [map['name_zh'], map['name_en'], map['parent_id'], map['id']]);
-    var queryType = await db.query("select * from_child type where id =${map['id']}");
+    await db.query('update type_child set name=?,parent_id=? where id=?', [map['name'], map['parent_id'], map['id']]);
+    var queryType = await db.query("select * from type_child where id =${map['id']}");
     TypeBean? typeBean;
     for (var row in queryType) {
       print('id: ${row[0]}, name: ${row[1]} ');
@@ -117,11 +100,11 @@ class TypeRepository extends ITypeRepository {
     }
     resultBean.msg = "修改成功";
     resultBean.code = 0;
-    resultBean.data = typeBean!.toJson();
+    resultBean.data = typeBean?.toJson();
     return resultBean.toJson();
   }
 
-  // 修改
+  // 删除
   Future<dynamic> delTypeChild(dynamic map) async {
     ResultBean resultBean = ResultBean();
     if (map['id'].toString().isEmpty) {
@@ -163,21 +146,12 @@ class TypeRepository extends ITypeRepository {
     ResultBean resultBean = ResultBean();
     MySqlConnection db = await DbUtils.instance();
     String searchSql = "";
-
-    String? language = map["language"];
-
     if (map["id"] != null) {
-      if (language == null) {
-        searchSql = "select id,name_zh from type_parent where id =${map["id"]}";
-      } else {
-        searchSql = "select id,name_en from type_parent where id =${map["id"]}";
-      }
+        searchSql = "select id,name from type_parent where id =${map["id"]}";
+
     } else {
-      if (language == null) {
-        searchSql = "select id,name_zh from type_parent where name_zh like '%${map["name"] ?? ''}%'";
-      } else {
-        searchSql = "select id,name_en from type_parent where name_en like '%${map["name"] ?? ''}%'";
-      }
+        searchSql = "select id,name from type_parent where name like '%${map["name"] ?? ''}%'";
+
     }
     var queryType = await db.query(searchSql);
     List<TypeBean> typeBeans = [];
@@ -230,11 +204,15 @@ class TypeRepository extends ITypeRepository {
       return resultBean.toJson();
     }
     MySqlConnection db = await DbUtils.instance();
-    String searchSql = "";
+    String delSql = "";
+    String delChildSql = "";
+    // 关联的子标签也会被删除
     if (map["id"] != null) {
-      searchSql = "delete from type_parent where id =${map["id"]}";
+      delSql = "delete from type_parent where id =${map["id"]}";
+      delChildSql = "delete from type_child where parent_id =${map["id"]}";
     }
-    await db.query(searchSql);
+    await db.query(delSql);
+    await db.query(delChildSql);
     resultBean.msg = "删除成功";
     resultBean.code = 0;
     return resultBean.toJson();
@@ -245,12 +223,8 @@ class TypeRepository extends ITypeRepository {
     ResultBean resultBean = ResultBean();
     MySqlConnection db = await DbUtils.instance();
     String searchSql = "";
-    String? language = map["language"];
-    if (language == null) {
-      searchSql = "select id,name_zh from type_parent";
-    } else {
-      searchSql = "select id,name_en from type_parent";
-    }
+      searchSql = "select id,name from type_parent";
+
     var queryType = await db.query(searchSql);
     List<TypeBean> typeParentBeans = [];
     for (var rowParent in queryType) {
@@ -260,11 +234,8 @@ class TypeRepository extends ITypeRepository {
     }
     List<TypeBean> typeChildAllBeans = [];
     String childSearchSql = "";
-    if (language == null) {
-      childSearchSql = "select id,name_zh,parent_id from type_child";
-    } else {
-      childSearchSql = "select id,name_en,parent_id from type_child";
-    }
+      childSearchSql = "select id,name,parent_id from type_child";
+
     var queryChildType = await db.query(childSearchSql);
     for (var row in queryChildType) {
       print('id: ${row[0]}, name: ${row[1]} ');
@@ -281,13 +252,13 @@ class TypeRepository extends ITypeRepository {
           return false;
         }
       }).toList();
-
       valueParent.childBean = childData;
       print("子菜单是:${childData}");
     }
+
     resultBean.msg = "查询成功";
     resultBean.code = 0;
-    resultBean.data = json.encode(typeParentBeans);
+    resultBean.data = json.encode(typeParentBeans.map((e) => e.toJson()).toList());
     return resultBean.toJson();
   }
 }
