@@ -6,14 +6,19 @@ import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
 
 import 'repository/type_repository.dart';
+import 'repository/user_repository.dart';
 
 TypeRepository typeRepository = TypeRepository();
+UserRepository userRepository = UserRepository();
 
 final _router = Router()
   ..post('/add_type', _webSiteAddType)
   ..post('/search_type', _webSiteSearchType)
   ..post('/update_type', _webSiteUpdateType)
-  ..post('/del_type', _webSiteDelType);
+  ..post('/del_type', _webSiteDelType)
+  ..post('/user_reg', _userReg)
+  ..post('/user_update', _userUpdate)
+  ..post('/user_login', _userSearch);
 
 Future<Response> _webSiteAddType(Request request) async {
   var body = await request.readAsString();
@@ -35,7 +40,7 @@ Future<Response> _webSiteSearchType(Request request) async {
     result = await typeRepository.searchTypeParent(reqMap);
   } else if (reqMap["type"] == "child") {
     result = await typeRepository.searchTypeChild(reqMap);
-  }else  if (reqMap["type"] == "all") {
+  } else if (reqMap["type"] == "all") {
     result = await typeRepository.searchTypeAll(reqMap);
   }
   return Response.ok(json.encode(result));
@@ -62,6 +67,25 @@ Future<Response> _webSiteDelType(Request request) async {
   } else if (reqMap["type"] == "child") {
     result = await typeRepository.delTypeChild(json.decode(body));
   }
+  return Response.ok(json.encode(result));
+}
+
+Future<Response> _userReg(Request request) async {
+  var body = await request.readAsString();
+  dynamic result;
+  result = await userRepository.userReg(json.decode(body));
+  return Response.ok(json.encode(result));
+}
+Future<Response> _userSearch(Request request) async {
+  var body = await request.readAsString();
+  dynamic result;
+  result = await userRepository.userSearch(json.decode(body));
+  return Response.ok(json.encode(result));
+}
+Future<Response> _userUpdate(Request request) async {
+  var body = await request.readAsString();
+  dynamic result;
+  result = await userRepository.userUpdate(json.decode(body));
   return Response.ok(json.encode(result));
 }
 
