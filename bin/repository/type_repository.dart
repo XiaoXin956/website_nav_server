@@ -31,7 +31,7 @@ class TypeRepository extends ITypeRepository {
   // 添加
   Future<dynamic> addTypeChild(dynamic map) async {
     ResultBean resultBean = ResultBean();
-    if (map["parent_id"].isEmpty) {
+    if (map["parent_id"]==null) {
       resultBean.msg = "父级id不允许为空";
       resultBean.code = -1;
       return resultBean.toJson();
@@ -42,6 +42,14 @@ class TypeRepository extends ITypeRepository {
       return resultBean.toJson();
     }
     MySqlConnection db = await DbUtils.instance();
+
+    var queryCount = await db.query("select * from type_child where name ='${map['name']}'");
+    for (var value in queryCount) {
+      resultBean.msg = "该数据存在";
+      resultBean.code = -1;
+      return resultBean.toJson();
+    }
+
     var query = db.query("insert into type_child (name,parent_id) values(?,?)", [
       map['name'],
       map['parent_id'],
@@ -66,7 +74,7 @@ class TypeRepository extends ITypeRepository {
     List<TypeBean> typeBeans = [];
     for (var row in queryType) {
       print('id: ${row[0]}, name: ${row[1]} ');
-      TypeBean typeBean = TypeBean(id: row[0], name: row[1], parentId: row[2]);
+      TypeBean typeBean = TypeBean(id: row['id'], name: row['name'], parentId: row['parent_id']);
       typeBeans.add(typeBean);
     }
     resultBean.msg = "查询成功";
@@ -128,12 +136,19 @@ class TypeRepository extends ITypeRepository {
   // 添加父级
   Future<dynamic> addTypeParent(dynamic map) async {
     ResultBean resultBean = ResultBean();
-    if (map["name"].isEmpty) {
+    if (map["name"]==null) {
       resultBean.msg = "类型名称不允许为空";
       resultBean.code = -1;
       return resultBean.toJson();
     }
     MySqlConnection db = await DbUtils.instance();
+    var queryCount = await db.query("select * from type_parent where name ='${map['name']}'");
+    for (var value in queryCount) {
+      resultBean.msg = "该数据存在";
+      resultBean.code = -1;
+      return resultBean.toJson();
+    }
+
     var query = db.query("insert into type_parent (name) values(?)", [map['name']]);
     print(query);
     resultBean.msg = "添加成功";

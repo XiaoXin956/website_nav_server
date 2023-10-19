@@ -5,11 +5,13 @@ import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart';
 import 'package:shelf_router/shelf_router.dart';
 
+import 'repository/knowledge_repository.dart';
 import 'repository/type_repository.dart';
 import 'repository/user_repository.dart';
 
 TypeRepository typeRepository = TypeRepository();
 UserRepository userRepository = UserRepository();
+IKnowledgeRepository knowledgeRepository = KnowledgeRepository();
 
 final _router = Router()
   ..post('/add_type', _webSiteAddType)
@@ -18,7 +20,8 @@ final _router = Router()
   ..post('/del_type', _webSiteDelType)
   ..post('/user_reg', _userReg)
   ..post('/user_update', _userUpdate)
-  ..post('/user_login', _userSearch);
+  ..post('/user_login', _userSearch)
+  ..post('/knowledge', _knowledge);
 
 Future<Response> _webSiteAddType(Request request) async {
   var body = await request.readAsString();
@@ -29,7 +32,7 @@ Future<Response> _webSiteAddType(Request request) async {
   } else if (reqMap["type"] == "child") {
     result = await typeRepository.addTypeChild(reqMap);
   }
-  return Response.ok("$result");
+  return Response.ok(json.encode(result));
 }
 
 Future<Response> _webSiteSearchType(Request request) async {
@@ -88,6 +91,28 @@ Future<Response> _userUpdate(Request request) async {
   result = await userRepository.userUpdate(json.decode(body));
   return Response.ok(json.encode(result));
 }
+
+Future<Response> _knowledge(Request request) async {
+  var body = await request.readAsString();
+   var reqMap = json.decode(body);
+  dynamic result;
+
+  if(reqMap["type"]=="search"){
+    // 查询
+    result = await knowledgeRepository.searchKnowledge(reqMap);
+  }else if(reqMap["type"]=="add"){
+    // 添加
+    result = await knowledgeRepository.addKnowledge(reqMap);
+  }else if(reqMap["type"]=="update"){
+    // 修改
+    result = await knowledgeRepository.updateKnowledge(reqMap);
+  } else if(reqMap["type"]=="remove"){
+    // 删除
+    result = await knowledgeRepository.removeKnowledge(reqMap);
+  }
+  return Response.ok(json.encode(result));
+}
+
 
 void main(List<String> args) async {
   // Use any available host or container IP (usually `0.0.0.0`).
