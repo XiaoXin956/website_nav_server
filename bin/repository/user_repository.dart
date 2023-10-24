@@ -44,7 +44,7 @@ class UserRepository extends IUserRepository {
     var queryUserDetails = await db.query("select * from user where email ='${map['email']}'");
     UserBean? userBean;
     for (var row in queryUserDetails) {
-      userBean = UserBean(id: row[0], name: row[1], email: row[2], regType: row[3]);
+      userBean = UserBean(id: row['id'], name: row['name'], email: row['email'], regType: row['reg_type'], authority: row['authority']);
       print('注册信息：${userBean.toJson()} ');
     }
     resultBean.code = 0;
@@ -70,7 +70,7 @@ class UserRepository extends IUserRepository {
     var queryUserDetails = await db.query("select * from user where email =${map['email']} and password=${map['password']}");
     UserBean? userBean;
     for (var row in queryUserDetails) {
-      userBean = UserBean(id: row[0], name: row[1], email: row[2], regType: row[3]);
+      userBean = UserBean(id: row['id'], name: row['name'], email: row['email'], regType: row['reg_type'], authority: row['authority']);
       print('登录信息：${userBean.toJson()} ');
     }
     if (userBean == null) {
@@ -104,8 +104,7 @@ class UserRepository extends IUserRepository {
     var queryType = await db.query("select * from user where id =${map['id']}");
     UserBean? userBean;
     for (var row in queryType) {
-      print('id: ${row[0]}, name: ${row[1]} ');
-      userBean = UserBean(id: row[0], name: row[1], email: row[2], regType: row[3]);
+      userBean = UserBean(id: row['id'], name: row['name'], email: row['email'], regType: row['reg_type'], authority: row['authority']);
     }
     resultBean.msg = "修改成功,即将退出";
     resultBean.code = 0;

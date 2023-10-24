@@ -89,7 +89,7 @@ class KnowledgeRepository extends IKnowledgeRepository {
     var queryType = await db.query(searchSql);
     List<KnowledgeBean> knowledgeData = [];
     for (var row in queryType) {
-      KnowledgeBean knowledgeBean = KnowledgeBean(id: row['id'], label: row['label'], text: row['text'], url: row['url'], typeId: row['type_id']);
+      KnowledgeBean knowledgeBean = KnowledgeBean(id: row['id'], label: row['label'], text: row['text'], url: row['url'], typeId: row['type_id'], describe: row['describe']);
       knowledgeData.add(knowledgeBean);
     }
     resultBean.msg = "查询成功";
@@ -138,7 +138,7 @@ class KnowledgeRepository extends IKnowledgeRepository {
     var queryType = await db.query("select * from knowledge where id =${map['id']}");
     KnowledgeBean? knowledgeBean;
     for (var row in queryType) {
-      knowledgeBean = KnowledgeBean(id: row['id'], label: row['label'], text: row['text'], url: row['url'], typeId: row['type_id']);
+       knowledgeBean = KnowledgeBean(id: row['id'], label: row['label'], text: row['text'], url: row['url'], typeId: row['type_id'], describe: row['describe']);
     }
     resultBean.msg = "修改成功";
     resultBean.code = 0;
