@@ -4,6 +4,7 @@ import 'package:mysql1/mysql1.dart';
 
 import '../bean/knowledge_bean.dart';
 import '../bean/result_bean.dart';
+import '../bean/type_bean.dart';
 import '../db_utils.dart';
 
 abstract class IKnowledgeRepository {
@@ -87,14 +88,38 @@ class KnowledgeRepository extends IKnowledgeRepository {
       searchSql = "select * from knowledge where text like '%${map["text"] ?? ''}%'";
     }
     var queryType = await db.query(searchSql);
-    List<KnowledgeBean> knowledgeData = [];
+    List<KnowledgeBean> knowledgeAllData = []; // 所有的资源
     for (var row in queryType) {
       KnowledgeBean knowledgeBean = KnowledgeBean(id: row['id'], label: row['label'], text: row['text'], url: row['url'], typeId: row['type_id'], describe: row['describe']);
-      knowledgeData.add(knowledgeBean);
+      knowledgeAllData.add(knowledgeBean);
     }
+
+    // 查询所有的类型
+    List<TypeBean> typeChildAllBeans = [];
+    String childSearchSql = "";
+    childSearchSql = "select id,name,parent_id from type_child";
+
+    var queryChildType = await db.query(childSearchSql);
+    for (var row in queryChildType) {
+      TypeBean typeBean = TypeBean(id: row['id'], name: row['name'], parentId: row['parent_id']);
+      typeChildAllBeans.add(typeBean);
+    }
+
+    // 整合
+    List<dynamic> data = [];
+    typeChildAllBeans.forEach((element) {
+      // 判断返回集合
+      List<KnowledgeBean> result = knowledgeAllData.where((knowValue) => knowValue.typeId == element.id).toList();
+      // 添加到
+      data.add({"type_bean": element, "result": result});
+    });
+
+    print(data);
+    print(json.encode(data));
+
     resultBean.msg = "查询成功";
     resultBean.code = 0;
-    resultBean.data = json.encode(knowledgeData);
+    resultBean.data = json.encode(data);
     return resultBean.toJson();
   }
 
@@ -138,7 +163,7 @@ class KnowledgeRepository extends IKnowledgeRepository {
     var queryType = await db.query("select * from knowledge where id =${map['id']}");
     KnowledgeBean? knowledgeBean;
     for (var row in queryType) {
-       knowledgeBean = KnowledgeBean(id: row['id'], label: row['label'], text: row['text'], url: row['url'], typeId: row['type_id'], describe: row['describe']);
+      knowledgeBean = KnowledgeBean(id: row['id'], label: row['label'], text: row['text'], url: row['url'], typeId: row['type_id'], describe: row['describe']);
     }
     resultBean.msg = "修改成功";
     resultBean.code = 0;

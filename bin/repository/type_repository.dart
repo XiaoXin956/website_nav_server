@@ -136,7 +136,7 @@ class TypeRepository extends ITypeRepository {
   // 添加父级
   Future<dynamic> addTypeParent(dynamic map) async {
     ResultBean resultBean = ResultBean();
-    if (map["name"]==null) {
+    if (map["name"]==null||map["name"]=="") {
       resultBean.msg = "类型名称不允许为空";
       resultBean.code = -1;
       return resultBean.toJson();
