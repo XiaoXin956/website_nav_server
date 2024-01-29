@@ -97,11 +97,11 @@ class KnowledgeRepository extends IKnowledgeRepository {
     // 查询所有的类型
     List<TypeBean> typeChildAllBeans = [];
     String childSearchSql = "";
-    childSearchSql = "select id,name,parent_id from type_child";
+    childSearchSql = "select id,name from type_child";
 
     var queryChildType = await db.query(childSearchSql);
     for (var row in queryChildType) {
-      TypeBean typeBean = TypeBean(id: row['id'], name: row['name'], parentId: row['parent_id']);
+      TypeBean typeBean = TypeBean(id: row['id'], name: row['name']);
       typeChildAllBeans.add(typeBean);
     }
 

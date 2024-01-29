@@ -4,7 +4,7 @@ var mysqlSettings = ConnectionSettings(
   host: 'mysql.sqlpub.com',
   port: 3306,
   user: 'z853006022',
-  password: 'a72fd3cb8ede27c0',
+  password: '90b23819e94572af',
   db: 'website_nav',
 );
 

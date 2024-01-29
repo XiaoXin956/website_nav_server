@@ -27,13 +27,8 @@ final _router = Router()
 
 Future<Response> _webSiteAddType(Request request) async {
   var body = await request.readAsString();
-  dynamic result;
   dynamic reqMap = json.decode(body);
-  if (reqMap["type"] == "parent") {
-    result = await typeRepository.addTypeParent(reqMap);
-  } else if (reqMap["type"] == "child") {
-    result = await typeRepository.addTypeChild(reqMap);
-  }
+  dynamic result = await typeRepository.addTypeChild(reqMap);
   return Response.ok(json.encode(result));
 }
 
@@ -41,9 +36,7 @@ Future<Response> _webSiteSearchType(Request request) async {
   var body = await request.readAsString();
   dynamic result;
   dynamic reqMap = json.decode(body);
-  if (reqMap["type"] == "parent") {
-    result = await typeRepository.searchTypeParent(reqMap);
-  } else if (reqMap["type"] == "child") {
+  if (reqMap["type"] == "child") {
     result = await typeRepository.searchTypeChild(reqMap);
   } else if (reqMap["type"] == "all") {
     result = await typeRepository.searchTypeAll(reqMap);
@@ -54,24 +47,14 @@ Future<Response> _webSiteSearchType(Request request) async {
 Future<Response> _webSiteUpdateType(Request request) async {
   var body = await request.readAsString();
   dynamic result;
-  dynamic reqMap = json.decode(body);
-  if (reqMap["type"] == "parent") {
-    result = await typeRepository.updateTypeParent(json.decode(body));
-  } else if (reqMap["type"] == "child") {
     result = await typeRepository.updateTypeChild(json.decode(body));
-  }
   return Response.ok(json.encode(result));
 }
 
 Future<Response> _webSiteDelType(Request request) async {
   var body = await request.readAsString();
   dynamic result;
-  dynamic reqMap = json.decode(body);
-  if (reqMap["type"] == "parent") {
-    result = await typeRepository.delTypeParent(json.decode(body));
-  } else if (reqMap["type"] == "child") {
     result = await typeRepository.delTypeChild(json.decode(body));
-  }
   return Response.ok(json.encode(result));
 }
 
