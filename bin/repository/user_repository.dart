@@ -34,17 +34,14 @@ class UserRepository extends IUserRepository {
       resultBean.code = -1;
       return resultBean.toJson();
     }
-    db.query("insert into user (name,reg_type,password,email) values(?,?,?,?)", [
-      map['name'],
-      map['reg_type'],
-      map['password'],
-      map['email'],
-    ]);
-    await Future.delayed(Duration(seconds: 2));
+    await db.query(
+      "insert into user (name,user_type,password,email) values(?,?,?,?)",
+      [map['name'], map['user_type'], map['password'], map['email']],
+    );
     var queryUserDetails = await db.query("select * from user where email ='${map['email']}'");
     UserBean? userBean;
     for (var row in queryUserDetails) {
-      userBean = UserBean(id: row['id'], name: row['name'], email: row['email'], regType: row['reg_type'], authority: row['authority']);
+      userBean = UserBean(id: row['id'], name: row['name'], email: row['email'], regType: row['user_type'], authority: row['authority']);
       print('注册信息：${userBean.toJson()} ');
     }
     resultBean.code = 0;
@@ -67,7 +64,7 @@ class UserRepository extends IUserRepository {
       return resultBean.toJson();
     }
     MySqlConnection db = await DbUtils.instance();
-    var queryUserDetails = await db.query("select * from user where email =${map['email']} and password=${map['password']}");
+    var queryUserDetails = await db.query("select * from user where email ='${map['email']}' and password='${map['password']}'");
     UserBean? userBean;
     for (var row in queryUserDetails) {
       userBean = UserBean(id: row['id'], name: row['name'], email: row['email'], regType: row['reg_type'], authority: row['authority']);

@@ -47,11 +47,12 @@ class KnowledgeRepository extends IKnowledgeRepository {
       resultBean.code = -1;
       return resultBean.toJson();
     }
-    await db.query("insert into knowledge (label,text,url,type_id) values(?,?,?,?)", [
+    await db.query("insert into knowledge (label,text,url,type_id,img_url) values(?,?,?,?,?)", [
       map['label'],
       map['text'],
       map['url'],
       map['type_id'],
+      map['img_url'],
     ]);
     resultBean.msg = "添加成功";
     resultBean.code = 0;
@@ -90,7 +91,15 @@ class KnowledgeRepository extends IKnowledgeRepository {
     var queryType = await db.query(searchSql);
     List<KnowledgeBean> knowledgeAllData = []; // 所有的资源
     for (var row in queryType) {
-      KnowledgeBean knowledgeBean = KnowledgeBean(id: row['id'], label: row['label'], text: row['text'], url: row['url'], typeId: row['type_id'], describe: row['describe']);
+      KnowledgeBean knowledgeBean = KnowledgeBean(
+        id: row['id'],
+        label: row['label'],
+        text: row['text'],
+        url: row['url'],
+        typeId: row['type_id'],
+        describe: row['describe'],
+        imgUrl: row['img_url'],
+      );
       knowledgeAllData.add(knowledgeBean);
     }
 
@@ -157,13 +166,24 @@ class KnowledgeRepository extends IKnowledgeRepository {
     if (map['type_id'] != null) {
       updateSql.write("type_id=${map['type_id']} ");
     }
+    if (map['img_url'] != null) {
+      updateSql.write("img_url=${map['img_url']} ");
+    }
     updateSql.write("where id=${map['id']} ");
 
     await db.query(updateSql.toString());
     var queryType = await db.query("select * from knowledge where id =${map['id']}");
     KnowledgeBean? knowledgeBean;
     for (var row in queryType) {
-      knowledgeBean = KnowledgeBean(id: row['id'], label: row['label'], text: row['text'], url: row['url'], typeId: row['type_id'], describe: row['describe']);
+      knowledgeBean = KnowledgeBean(
+        id: row['id'],
+        label: row['label'],
+        text: row['text'],
+        url: row['url'],
+        typeId: row['type_id'],
+        describe: row['describe'],
+        imgUrl: row['img_url'],
+      );
     }
     resultBean.msg = "修改成功";
     resultBean.code = 0;
